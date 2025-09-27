@@ -1,0 +1,17 @@
+{
+  "name": "shopify-customizer-app",
+  "version": "1.0.0",
+  "description": "A Shopify app for product personalization.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "axios": "^1.4.0",
+    "nonce": "^1.0.4",
+    "cookie-parser": "^1.4.6",
+    "body-parser": "^1.20.2"
+  }
+}
