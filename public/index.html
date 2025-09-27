@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Customizer</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
   <style>
     #customizer-container {
       border: 1px solid #ccc;
@@ -12,32 +12,10 @@
       margin: 20px 0;
       max-width: 500px;
     }
-    #preview-canvas {
-      width: 300px;
-      height: 300px;
-      border: 1px solid #000;
-      position: relative;
-      background-color: #f0f0f0;
-      overflow: hidden; /* Ensures elements don't go outside the canvas */
-    }
-    #preview-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 20px;
-      font-family: Arial, sans-serif;
-      white-space: pre-wrap; /* Allows text to wrap */
-      text-align: center;
-      width: 100%;
-    }
-    #preview-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Stretches image to fill the container */
+    #canvas-container {
+        border: 1px solid #000;
+        width: 300px;
+        height: 300px;
     }
     .customizer-controls {
         margin-top: 15px;
@@ -46,19 +24,18 @@
 </head>
 <body>
 
-  <!-- This container will be injected onto the Shopify product page -->
   <div id="customizer-container">
     <h2>Customize Your Product</h2>
 
-    <div id="preview-canvas">
-      <img id="preview-image" src="" alt="">
-      <div id="preview-text"></div>
+    <div id="canvas-container">
+        <canvas id="c" width="300" height="300"></canvas>
     </div>
 
     <div class="customizer-controls">
       <div>
         <label for="text-input">Add Text:</label>
         <input type="text" id="text-input" placeholder="Enter your text">
+        <button id="add-text">Add Text</button>
       </div>
       <div>
         <label for="image-upload">Upload Image:</label>

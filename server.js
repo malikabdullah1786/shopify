@@ -20,7 +20,8 @@ const {
   SHOPIFY_API_KEY,
   SHOPIFY_API_SECRET,
   SHOPIFY_SCOPES,
-  HOST
+  HOST,
+  SHOPIFY_API_VERSION
 } = process.env;
 
 const ACTIVE_SHOPIFY_SHOPS = {};
@@ -150,21 +151,71 @@ function processOrder(order, shop) {
 }
 
 function sendToPodService(order, itemsToFulfill) {
-    console.log('--- Sending to POD Service ---');
-    console.log('Order ID:', order.id);
-    console.log('Shipping Address:', order.shipping_address);
+    // --- THIS IS A PLACEHOLDER FOR REAL POD INTEGRATION ---
+    // In a production app, you would make an API call to your Print-on-Demand (POD) service here.
+    // This example simulates sending the order to Printify.
 
-    itemsToFulfill.forEach(item => {
-        console.log('  - Line Item:', item.line_item.name);
-        console.log('    SKU:', item.line_item.sku);
-        console.log('    Quantity:', item.line_item.quantity);
-        // Log a snippet of the base64 data to avoid flooding the console
-        console.log('    Design Data:', item.design_data_url.substring(0, 80) + '...');
+    console.log('--- Simulating: Sending to POD Service (e.g., Printify) ---');
+
+    // 1. You would need the merchant's Printify API token.
+    //    This should be securely stored, likely retrieved when they configure the app.
+    const PRINTIFY_API_TOKEN = 'your_printify_api_token_here';
+
+    // 2. You need to map the Shopify variant SKU to the Printify product and variant IDs.
+    //    This mapping is crucial and is usually configured by the merchant in your app's dashboard.
+    //    For example, `SKU-TSHIRT-BLK-M` might map to Printify's provider_id: 39, blueprint_id: 45, variant_id: 12345.
+
+    const line_items = itemsToFulfill.map(item => {
+        return {
+            // "sku": "YOUR-PRINTIFY-VARIANT-SKU-HERE", // Or use printify variant ID
+            "quantity": item.line_item.quantity,
+            "print_files": [
+                {
+                    "url": item.design_data_url, // The base64 data URL from the canvas
+                    "position": { "x": 0.5, "y": 0.5, "scale": 1, "angle": 0 }
+                }
+            ]
+        };
     });
 
-    console.log('-----------------------------');
-    // Here you would make an API call to your POD service (e.g., Printify)
-    // with the order details and the base64 design data for each item.
+    const podPayload = {
+        "external_id": order.id.toString(), // Use Shopify order ID as an external reference
+        "line_items": line_items,
+        "shipping_method": 1, // Standard shipping
+        "send_shipping_notification": true,
+        "address_to": {
+            "first_name": order.shipping_address.first_name,
+            "last_name": order.shipping_address.last_name,
+            "address1": order.shipping_address.address1,
+            "address2": order.shipping_address.address2 || "",
+            "city": order.shipping_address.city,
+            "region": order.shipping_address.province_code || "",
+            "zip": order.shipping_address.zip,
+            "country": order.shipping_address.country_code,
+            "email": order.email,
+            "phone": order.shipping_address.phone || ""
+        }
+    };
+
+    console.log('Constructed POD Payload:', JSON.stringify(podPayload, null, 2));
+
+    // 3. Make the API call to the POD service.
+    //    See Printify API docs for creating an order: https://developers.printify.com/
+    /*
+    axios.post(`https://api.printify.com/v1/shops/{shop_id}/orders.json`, podPayload, {
+        headers: {
+            'Authorization': `Bearer ${PRINTIFY_API_TOKEN}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        console.log('Successfully sent order to POD service:', response.data);
+    })
+    .catch(error => {
+        console.error('Error sending order to POD service:', error.response ? error.response.data : error.message);
+    });
+    */
+    console.log('-----------------------------------------------------------------');
 }
 
 function registerScriptTag(shop) {
@@ -174,7 +225,7 @@ function registerScriptTag(shop) {
     // This implementation uses ScriptTag for simplicity in this environment, as Theme App Extensions
     // require the Shopify CLI and a more complex setup.
     const accessToken = ACTIVE_SHOPIFY_SHOPS[shop];
-    const shopifyApiUrl = `https://{shop}/admin/api/2023-10/script_tags.json`.replace('{shop}', shop);
+    const shopifyApiUrl = `https://{shop}/admin/api/${SHOPIFY_API_VERSION}/script_tags.json`.replace('{shop}', shop);
 
     const scriptTagPayload = {
         script_tag: {
@@ -203,7 +254,7 @@ function registerScriptTag(shop) {
 
 function registerOrderCreateWebhook(shop) {
     const accessToken = ACTIVE_SHOPIFY_SHOPS[shop];
-    const shopifyApiUrl = `https://{shop}/admin/api/2023-10/webhooks.json`.replace('{shop}', shop);
+    const shopifyApiUrl = `https://{shop}/admin/api/${SHOPIFY_API_VERSION}/webhooks.json`.replace('{shop}', shop);
 
     const webhookPayload = {
         webhook: {
